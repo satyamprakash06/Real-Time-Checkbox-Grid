@@ -4,6 +4,7 @@ import path from 'node:path';
 
 import express from 'express';
 import { Server, Socket} from 'socket.io'
+import { publisher, subscriber } from './radis-connection.js';
 
 
 //in mermory state
@@ -22,6 +23,15 @@ async function main() {
 
   const io = new Server();
    io.attach(server);
+
+  await subscriber.subscribe('internal-server:checkbox:change');
+   subscriber.on('message', (channel, message) => {
+          if(channel === 'internal-server:checkbox:change'){
+            const {index, isChecked} = JSON.parse(message);
+            state.checkboxs[index] = isChecked;
+            io.emit('server:checkbox:change', {index, isChecked});
+          }
+        })
   
 
 //    socket IO handler
@@ -30,11 +40,14 @@ async function main() {
 
     socket.on('client:checkbox:change', (data)=>{
         console.log(`[Socket :${socket.id}]:client:checkbox:change`, data)
-        io.emit('server:checkbox:change', data);
-        state.checkboxs[data.index] = data.isChecked;
+        // io.emit('server:checkbox:change', data);
+        // state.checkboxs[data.index] = data.isChecked;
 
-       
-    });
+        // publish to redis channel
+        publisher.publish('internal-server:checkbox:change', JSON.stringify(data));
+        
+      
+      });
   });
 
 //    for express part

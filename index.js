@@ -1,6 +1,7 @@
 import http from 'node:http';
 import path from 'node:path';
 
+
 import express from 'express';
 import { Server, Socket} from 'socket.io'
 
@@ -31,6 +32,8 @@ async function main() {
         console.log(`[Socket :${socket.id}]:client:checkbox:change`, data)
         io.emit('server:checkbox:change', data);
         state.checkboxs[data.index] = data.isChecked;
+
+       
     });
   });
 

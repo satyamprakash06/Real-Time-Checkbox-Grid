@@ -11,7 +11,7 @@ import { publisher, subscriber, redis } from './radis-connection.js';
 const CHECKBOX_SIZE = 200;
 const CHECKBOX_STATE_KEY = 'checkbox-state';
 
-
+const rateLimitingHashMap = new Map(); // to store the last operation time for each socket
 
 async function main() {
   const PORT = process.env.PORT ?? 8000;
@@ -39,6 +39,18 @@ async function main() {
     socket.on('client:checkbox:change', async (data)=>{
         console.log(`[Socket :${socket.id}]:client:checkbox:change`, data)
         
+        // rate limiting logic
+        const lastOperationTime = rateLimitingHashMap.get(socket.id);
+        if(lastOperationTime){
+          const currentTime = Date.now() - lastOperationTime;
+          if(currentTime < 5.5 * 1000){ // 5.5 second rate limit
+            socket.emit('rate-limit', {error: `You are sending requests too quickly. Please wait a moment before trying again.`});
+            return;
+          }
+        }
+        rateLimitingHashMap.set(socket.id, Date.now());
+        
+
         const existingState = await redis.get(CHECKBOX_STATE_KEY);
         if(existingState){
           const remoteData = JSON.parse(existingState);

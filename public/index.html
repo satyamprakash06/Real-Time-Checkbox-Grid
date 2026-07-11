@@ -77,7 +77,10 @@
         const container = document.getElementById('container');
         const CHECKBOX_COUNT = 200;
 
-
+        socket.on('rate-limit', (data)=>{
+            console.warn(data.error);
+            alert(data.error);
+        });
           socket.on('server:checkbox:change', (data)=>{
                 console.log(`Socket Server Event`, data);
                 const { index, isChecked } = data;

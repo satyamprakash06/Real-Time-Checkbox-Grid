@@ -40,7 +40,8 @@ async function main() {
         console.log(`[Socket :${socket.id}]:client:checkbox:change`, data)
         
         // rate limiting logic
-        const lastOperationTime = rateLimitingHashMap.get(socket.id);
+        const lastOperationTime = await redis.get(`rate-limiting:${socket.id}`);
+        
         if(lastOperationTime){
           const currentTime = Date.now() - lastOperationTime;
           if(currentTime < 5.5 * 1000){ // 5.5 second rate limit
@@ -48,7 +49,9 @@ async function main() {
             return;
           }
         }
-        rateLimitingHashMap.set(socket.id, Date.now());
+        // rate limiting is shifted to redis
+        await redis.set(`rate-limiting:${socket.id}`, Date.now());
+        
         
 
         const existingState = await redis.get(CHECKBOX_STATE_KEY);

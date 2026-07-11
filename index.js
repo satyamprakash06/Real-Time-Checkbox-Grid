@@ -5,6 +5,11 @@ import express from 'express';
 import { Server, Socket} from 'socket.io'
 
 
+//in mermory state
+const CHECKBOX_SIZE = 200;
+const state = {
+  checkboxs: new Array(CHECKBOX_SIZE).fill(false)
+};
 
 
 async function main() {
@@ -25,6 +30,7 @@ async function main() {
     socket.on('client:checkbox:change', (data)=>{
         console.log(`[Socket :${socket.id}]:client:checkbox:change`, data)
         io.emit('server:checkbox:change', data);
+        state.checkboxs[data.index] = data.isChecked;
     });
   });
 
@@ -34,6 +40,9 @@ async function main() {
     res.json({healthy: true});
  })
 
+ app.get('/checkboxes', (req, res)=>{
+    res.json({ checkboxes: state.checkboxs });
+ });
 
   server.listen(PORT, ()=>{
     console.log(`server is running on http://localhost:${PORT}`)

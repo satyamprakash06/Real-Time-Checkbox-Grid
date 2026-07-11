@@ -86,21 +86,30 @@
                 if(input){
                     input.checked = isChecked;
                 }
-            })
-        // JS way to add loop 
-        new Array(CHECKBOX_COUNT).fill(null).forEach((_, index)=>{
-            const input = document.createElement('input');
-            input.type = 'checkbox';
-            input.id = `checkbox-${index}`;
-          
-            input.addEventListener('change', (event) => {
-                const isChecked = event.target.checked;
-                console.log(`Checkbox ${index + 1} is ${isChecked ? 'checked' : 'unchecked'}`);
-                socket.emit('client:checkbox:change',{index, isChecked});
             });
 
-            container.appendChild(input);
-        })
+            window.addEventListener('load', async ()=>{
+                
+                    const response = await fetch('/checkboxes', { method: 'GET' });
+                    const data = await response.json();
+
+                    if(data && data.checkboxes){
+                    data.checkboxes.forEach((serverValue, index)=>{
+                        const input = document.createElement('input');
+                        input.type = 'checkbox';
+                        input.id = `checkbox-${index}`;
+                        input.checked = serverValue;
+                         input.addEventListener('change', (event) => {
+                        const isChecked = event.target.checked;
+                         console.log(`Checkbox ${index + 1} is ${isChecked ? 'checked' : 'unchecked'}`);
+                        socket.emit('client:checkbox:change',{index, isChecked});
+                             });
+                            container.appendChild(input); 
+                        });
+                    }
+            });
+
+
       </script>
 </body>
 </html>
